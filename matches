@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <!-- Set up trade parameters -->
+  <block type="trade_definition" id="trade_definition" x="10" y="10">
+    <field name="MARKET">synthetic_index</field>
+    <field name="SUBMARKET">match_diff</field>
+    <field name="CONTRACT_TYPE">matches</field>
+    <field name="DURATION">1</field>
+    <field name="DURATION_UNIT">t</field>
+    <field name="PREDICTION">5</field>
+    <field name="AMOUNT">1</field>
+    <field name="CURRENCY">USD</field>
+  </block>
+
+  <!-- Define stake -->
+  <block type="trade_options" id="trade_options" x="10" y="100">
+    <field name="AMOUNT">1</field>
+  </block>
+
+  <!-- Check if the prediction matches -->
+  <block type="controls_if" id="check_prediction" x="10" y="200">
+    <value name="IF0">
+      <block type="logic_compare" id="compare_prediction">
+        <field name="OP">EQ</field>
+        <value name="A">
+          <block type="contract_result" id="contract_result">
+            <field name="RESULT_TYPE">last_digit</field>
+          </block>
+        </value>
+        <value name="B">
+          <block type="math_number" id="predicted_number">
+            <field name="NUM">5</field>
+          </block>
+        </value>
+      </block>
+    </value>
+    <statement name="DO0">
+      <block type="trade_purchase" id="purchase_contract">
+        <field name="PURCHASE_TYPE">CALL</field>
+      </block>
+    </statement>
+  </block>
+
+  <!-- Take Profit and Stop Loss (adjustable) -->
+  <block type="controls_while" id="tp_sl_logic" x="10" y="400">
+    <field name="CONDITION">true</field>
+    <statement name="DO">
+      <block type="controls_if" id="tp_logic">
+        <value name="IF0">
+          <block type="logic_compare" id="compare_profit">
+            <field name="OP">GTE</field>
+            <value name="A">
+              <block type="balance" id="current_balance"></block>
+            </value>
+            <value name="B">
+              <block type="math_arithmetic" id="profit_threshold">
+                <field name="OP">ADD</field>
+                <value name="A">
+                  <block type="initial_balance" id="initial_balance"></block>
+                </value>
+                <value name="B">
+                  <block type="math_number" id="take_profit">
+                    <field name="NUM">10</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="trade_exit" id="exit_trade_tp">
+            <field name="REASON">Take Profit</field>
+          </block>
+        </statement>
+        <next>
+          <block type="controls_if" id="sl_logic">
+            <value name="IF0">
+              <block type="logic_compare" id="compare_loss">
+                <field name="OP">LTE</field>
+                <value name="A">
+                  <block type="balance" id="current_balance_sl"></block>
+                </value>
+                <value name="B">
+                  <block type="math_arithmetic" id="loss_threshold">
+                    <field name="OP">SUB</field>
+                    <value name="A">
+                      <block type="initial_balance" id="initial_balance_sl"></block>
+                    </value>
+                    <value name="B">
+                      <block type="math_number" id="stop_loss">
+                        <field name="NUM">5</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="trade_exit" id="exit_trade_sl">
+                <field name="REASON">Stop Loss</field>
+              </block>
+            </statement>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+
+</xml>
